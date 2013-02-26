@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Getopt::Long;
+use CalDAV::Sender;
+
+my $url;
+my %feeds;
+
+my $config_file = shift(@ARGV)
+	or die qq/Usage: $0 <config_file>/;
+
+if( ! -f $config_file ){
+	die qq/No such configuration file '$config_file'/;
+}
+
+if( ! -r $config_file ){
+	die qq/Configuration file '$config_file' not readable/;
+}
+
+open( my $fh, q(<), $config_file )
+	or die qq/Can not read '$config_file': $!/;
+my $url = <$fh>; chomp($url);
+
+while( my $line = <$fh> ){
+	chomp($line);
+	next if ! $line;
+
+	my ($key, $value) = split(qr/\s*[\s=]\s*/, $line);
+	$key =~ s/^\s*//gis;
+	$val =~ s/\s*$//gis;
+	$feeds{$key} = $val;
+}
+close($fh);
+
+my $sender = CalDAV::Sender->new($url);
+my $bool = $sender->process(\%feeds);
+
+exit ! $bool;
+
+=head1 ABOUT
+
+caldav-import - fetch remote calendars and push them to your CalDAV server
+
+=head1 SYNOPSIS
+
+ caldav-import <config_file>
+
+=head1 CONFIGURATION FILE
+
+The configuration file is a plain text file. The first row has
+to contain the destination URL where the calendars have to be
+pushed to. Other lines need to contain the name of the destination calender 
+under the destination URL (the calendar will be completly overwritten)
+and the adress of the remote calendar:
+
+ https://user:password@my.caldav.server/caldav.php/user
+
+ cal_name_1 = http://some.server.com/calendar.ics
+ cal_name_2 = http://some.other.server/caldav.php/public
+
+=head1 AUTHOR and SUPPORT
+
+Written by Manuel Landesfeind L<C<manuel@landesfeind.de>|mailto:manuel@landesfeind.de>.
+
+If you encounter a problem or issue, please check L<the GitHub page|https://github.com/landesfeind/caldav-sender> and 
+ensure that you have used the latest version. If the issue also occures in the latest version, feel free to start a ticket
+via the GitHub ticket system.
+
+=head1 COPYRIGHT
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
