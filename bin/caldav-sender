@@ -20,7 +20,7 @@ if( ! -r $config_file ){
 
 open( my $fh, q(<), $config_file )
 	or die qq/Can not read '$config_file': $!/;
-my $url = <$fh>; chomp($url);
+$url = <$fh>; chomp($url);
 
 while( my $line = <$fh> ){
 	chomp($line);
@@ -28,8 +28,8 @@ while( my $line = <$fh> ){
 
 	my ($key, $value) = split(qr/\s*[\s=]\s*/, $line);
 	$key =~ s/^\s*//gis;
-	$val =~ s/\s*$//gis;
-	$feeds{$key} = $val;
+	$value =~ s/\s*$//gis;
+	$feeds{$key} = $value;
 }
 close($fh);
 
