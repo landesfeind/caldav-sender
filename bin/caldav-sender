@@ -26,10 +26,18 @@ while( my $line = <$fh> ){
 	chomp($line);
 	next if ! $line;
 
-	my ($key, $value) = split(qr/\s*[\s=]\s*/, $line);
-	$key =~ s/^\s*//gis;
-	$value =~ s/\s*$//gis;
-	$feeds{$key} = $value;
+	if( ! $line ||  $line =~ m/^#/ ){
+		# ignore empty lines or comments
+	}
+	elsif( $line =~ m/^\s*(\S+)\s*=\s*(.+)\s*$/ ){
+		my ($key, $value) = ($1, $2);
+		$key =~ s/^\s*//gis;
+		$value =~ s/\s*$//gis;
+		$feeds{$key} = $value;
+	}
+	else {
+		print STDERR qq/WARNING: Can not parse: $line/;
+	}
 }
 close($fh);
 

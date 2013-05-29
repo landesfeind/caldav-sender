@@ -52,11 +52,12 @@ has url => (
 
 =head2 process
 
- $bool = $cs->process( 
+ %cals = (
 		$calendar_name_1 => $src_url_1,
 		$calendar_name_2 => $src_url_2,
 		...
 	);
+ $bool = $cs->process(%cals);
 
 Processes the given calendars using the L<process_calendar method|/process_calendar>.
 
