@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use Getopt::Long;
 use CalDAV::Sender;
+use Config::Tiny;
+
 
 my $url;
 my %feeds;
@@ -17,24 +19,19 @@ if( ! -f $config_file ){
 if( ! -r $config_file ){
 	die qq/Configuration file '$config_file' not readable/;
 }
+my $config = Config::Tiny->new();
+$config->read($config_file);
 
-open( my $fh, q(<), $config_file )
-	or die qq/Can not read '$config_file': $!/;
-$url = <$fh>; chomp($url);
-
-while( my $line = <$fh> ){
-	chomp($line);
-	next if ! $line;
-
-	my ($key, $value) = split(qr/\s*[\s=]\s*/, $line);
-	$key =~ s/^\s*//gis;
-	$value =~ s/\s*$//gis;
-	$feeds{$key} = $value;
+# Initialize sender
+if( ! $config->{caldav}->{url} ){
+	die qq/No caldav.url given in configuration file/;
 }
-close($fh);
-
-my $sender = CalDAV::Sender->new($url);
-my $bool = $sender->process(\%feeds);
+my $sender = CalDAV::Sender->new($config->{caldav}{url});
+if( $config->{caldav}{username} ){
+	$sender->username($config->{caldav}{username});
+	$sender->password($config->{caldav}{password});
+}
+my $bool = $sender->process($config->{feeds});
 
 exit ! $bool;
 
