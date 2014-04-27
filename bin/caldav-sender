@@ -4,6 +4,7 @@ use warnings;
 use Getopt::Long;
 use CalDAV::Sender;
 use Config::Tiny;
+use Data::Dumper;
 
 
 my $url;
@@ -19,8 +20,8 @@ if( ! -f $config_file ){
 if( ! -r $config_file ){
 	die qq/Configuration file '$config_file' not readable/;
 }
-my $config = Config::Tiny->new();
-$config->read($config_file);
+my $config = Config::Tiny->read($config_file, 'utf8')
+	or die qq/Can not read configuration: / . Config::Tiny->errstr;
 
 # Initialize sender
 if( ! $config->{caldav}->{url} ){
