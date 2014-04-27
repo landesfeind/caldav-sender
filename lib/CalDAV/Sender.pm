@@ -124,11 +124,11 @@ sub check_calendar {
 	my $url_full = sprintf(q(%s/%s), $self->url, $calendar);
 	print qq/\t\tFull url: $url_full\n/;
 	
-	my $request = HTTP::Request->new(GET => $url_full);
+	my $request = $self->_request(GET => $url_full);
 	my $response = $ua->request($request);
 	if( ! $response->is_success ){
 		if( $response->code == 404 ){
-			my $request_create = HTTP::Request->new(MKCALENDAR => $url_full);
+			my $request_create = $self->_request(MKCALENDAR => $url_full);
 			$request_create->add_content_utf8(q(<?xml version="1.0" encoding="utf-8" ?>
    <C:mkcalendar xmlns:D="DAV:"
                  xmlns:C="urn:ietf:params:xml:ns:caldav">
@@ -192,10 +192,7 @@ Returns a true value on success.
 
 sub send {
 	my ($self, $url_full, $data) = pos_validated_list(\@_, {isa => __PACKAGE__}, {isa => q/Str/}, {isa => q/Str/});
-	my $request = HTTP::Request->new(PUT => $url_full);
-	if( $self->username && $self->password ){
-		$request->authorization_basic($self->username, $self->password);
-	}
+	my $request = $self->_request(PUT => $url_full);
 	$request->header(q(Content-Type) => q(text/calendar));
 	$request->add_content_utf8($data);
 
@@ -204,6 +201,16 @@ sub send {
 		printf STDERR qq/ERROR: %s - %s\n%s\n/, $response->code, $response->status_line, $response->decoded_content;
 	}
 	return $response->is_success;
+}
+
+
+sub _request {
+	my ($self, $method, $url) = pos_validated_list(\@_, {isa => __PACKAGE__}, {isa => q/Str/}, {isa => q/Str/});
+	my $request = HTTP::Request->new($method => $url);
+	if( $self->username && $self->password ){
+		$request->authorization_basic($self->username, $self->password);
+	}
+	return $request;
 }
 
 __PACKAGE__->meta->make_immutable();
