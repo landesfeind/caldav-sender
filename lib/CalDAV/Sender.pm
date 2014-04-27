@@ -50,6 +50,16 @@ has url => (
 		required => 1,
 	);
 
+has username => (
+		is => q/rw/,
+		isa => q/Maybe[Str]/,
+	);
+has password => (
+		is => q/rw/,
+		isa => q/Maybe[Str]/,
+	);
+
+
 =head2 process
 
  %cals = (
@@ -183,6 +193,9 @@ Returns a true value on success.
 sub send {
 	my ($self, $url_full, $data) = pos_validated_list(\@_, {isa => __PACKAGE__}, {isa => q/Str/}, {isa => q/Str/});
 	my $request = HTTP::Request->new(PUT => $url_full);
+	if( $self->username && $self->password ){
+		$request->authorization_basic($self->username, $self->password);
+	}
 	$request->header(q(Content-Type) => q(text/calendar));
 	$request->add_content_utf8($data);
 
