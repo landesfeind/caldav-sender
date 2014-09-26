@@ -12,15 +12,16 @@ CalDAV::Sender - fetch remote calenders and push them to a CalDAV server
 package CalDAV::Sender;
 use Moose;
 use MooseX::Params::Validate;
-use utf8;
 
 use LWP;
+use Data::ICal;
+use Data::Dumper;
 use File::Temp qw/tempfile/;
 
 BEGIN { $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0 }
 
 my $ua = LWP::UserAgent->new;
-$ua->agent("CalDAV-Sender/0.1 ");
+$ua->agent("CalDAV-Sender/0.2 ");
 
 =head1 METHODS
 
@@ -100,7 +101,7 @@ sub process_calendar {
 		or return;
 
 	print qq/\tFetching: $url\n/;
-	my $data = $self->fetch($url)
+	my $data = $self->fetch($url)	
 		or return;
 	
 	print qq/\tSending: $url_full\n/;
@@ -172,13 +173,21 @@ sub fetch {
 	
 	my $request = HTTP::Request->new(GET => $url);
 	$request->accept_decodable;
+
 	my $response = $ua->request($request);
+	#print $response->headers_as_string;
+	#print $response->content;
 	if( ! $response->is_success ){
 		printf STDERR qq/Can not fetch '$url': %s\n/, $response->status_line;
 		return;
 	}
+	
+	if( ! $response->content ){
+		printf STDERR qq/No content in calendar object\n/;
+		return;
+	}
 
-	return ($response->decoded_content);
+	return defined $response->decoded_content ? $response->decoded_content : $response->content;
 }
 
 =head2 send
@@ -192,15 +201,29 @@ Returns a true value on success.
 
 sub send {
 	my ($self, $url_full, $data) = pos_validated_list(\@_, {isa => __PACKAGE__}, {isa => q/Str/}, {isa => q/Str/});
-	my $request = $self->_request(PUT => $url_full);
-	$request->header(q(Content-Type) => q(text/calendar));
-	$request->add_content_utf8($data);
+	
+	$data =~ s/\r//gis;
+	my $calendar = Data::ICal->new(data => $data);
 
-	my $response = $ua->request($request);
-	if( ! $response->is_success ){
-		printf STDERR qq/ERROR: %s - %s\n%s\n/, $response->code, $response->status_line, $response->decoded_content;
+	foreach my $event (@{$calendar->entries}){
+		my $uid = $event->property("uid")->[0]->value;
+		my $sum = $event->property("summary")->[0]->value;
+
+		my $request = $self->_request(PUT => $url_full .qq(/$uid.ics));
+		$request->header(q(Content-Type) => q(text/calendar; charset=UTF-8));
+		$request->header(q(Content-Encoding) => q(UTF-8));
+		$request->add_content(qq(BEGIN:VCALENDAR\r\n) . $event->as_string . q(END:VCALENDAR));
+		printf STDERR qq/\t%s (%s) - /, $uid, $sum;
+
+		my $response = $ua->request($request);
+		if( ! $response->is_success ){
+			printf STDERR qq/ERROR: %s - %s\n%s\n/, $response->code, $response->status_line, $response->content;
+			return;
+		}
+		printf STDERR qq/%s\n/, $response->status_line;
 	}
-	return $response->is_success;
+
+	return 1;
 }
 
 
