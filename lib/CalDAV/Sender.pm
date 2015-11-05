@@ -212,7 +212,7 @@ sub send {
 		my $request = $self->_request(PUT => $url_full .qq(/$uid.ics));
 		$request->header(q(Content-Type) => q(text/calendar; charset=UTF-8));
 		$request->header(q(Content-Encoding) => q(UTF-8));
-		$request->add_content(qq(BEGIN:VCALENDAR\r\n) . $event->as_string . q(END:VCALENDAR));
+		$request->add_content(qq(BEGIN:VCALENDAR\r\n) . Encode::encode_utf8($event->as_string) . q(END:VCALENDAR));
 		printf STDERR qq/\t%s (%s) - /, $uid, $sum;
 
 		my $response = $ua->request($request);
