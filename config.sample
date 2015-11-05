@@ -1,0 +1,13 @@
+[caldav]
+url=https://127.0.0.1:5232/pubics
+username=myuser
+password=mypassword
+
+[feeds]
+# List as many feeds as you like. The first part is the name of the calendar that will be created on above server. 
+# The second part (value) is the URL of the ics file somewhere on the internet
+
+#my_new_caldav_calendar = http://some.other.server/caldav.php/public
+
+# for use with radicale server, don't forget the ics and trailing slash
+#hkholidays.ics/ = http://www.1823.gov.hk/common/ical/en.ics
