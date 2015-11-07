@@ -12,6 +12,15 @@ apt-get install libmoose-perl libmoosex-params-validate-perl libwww-perl libdata
 Execution
 ======
 
+
+Copy the sample configuration
+
+```
 cp config.sample config
-#edit config
+```
+
+and change it according to your needs. To import the listed calendars, execute:
+
+```
 perl -Ilib bin/caldav-sender config
+```
