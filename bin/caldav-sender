@@ -48,16 +48,20 @@ caldav-import - fetch remote calendars and push them to your CalDAV server
 
 =head1 CONFIGURATION FILE
 
-The configuration file is a plain text file. The first row has
-to contain the destination URL where the calendars have to be
-pushed to. Other lines need to contain the name of the destination calender 
-under the destination URL (the calendar will be completly overwritten)
-and the adress of the remote calendar:
+The configuration file is a plain text file based on the ini file format. It has sections
+and key-value pairs (key=value). The config has two sections named [caldav] and [feeds].
 
- https://user:password@my.caldav.server/caldav.php/user
+[caldav] contains the destination "url" where the calendars have to be pushed to,
+as well as "username" and "password".
+
+[feeds] can contain multiple key-value pairs. The key describes the destination calender
+under the destination URL (the calendar will be completely overwritten) and the value
+is the address of the remote calendar:
 
  cal_name_1 = http://some.server.com/calendar.ics
  cal_name_2 = http://some.other.server/caldav.php/public
+
+See config.sample for a template
 
 =head1 AUTHOR and SUPPORT
 
